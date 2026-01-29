@@ -344,47 +344,71 @@ async function processFigmaNode(node: FigmaJsonNode): Promise<SceneNode> {
     // Handle text nodes
     if (htmlNode.text || nodeType === 'TEXT') {
       figmaNode = figma.createText();
-      const textContent = htmlNode.text || '';
+      const textContent = (htmlNode.text || '').trim();
       
-      if (textContent) {
-        const fontFamily = htmlNode.styles?.fontFamily ? sanitizeFontFamily(htmlNode.styles.fontFamily) : 'Inter';
-        const fontWeight = htmlNode.styles?.fontWeight;
-        const fontStyle = mapFontWeightToStyle(fontWeight);
-        
-        const appliedFont = await loadFontWithFallback(fontFamily, fontStyle);
-        (figmaNode as TextNode).fontName = appliedFont;
-        (figmaNode as TextNode).characters = textContent;
-        
-        // Apply text styles
-        if (htmlNode.styles?.fontSize) {
-          (figmaNode as TextNode).fontSize = parseDimension(htmlNode.styles.fontSize, 16);
-        }
-        if (htmlNode.styles?.color) {
-          (figmaNode as TextNode).fills = [{
-            type: 'SOLID',
-            color: parseColor(htmlNode.styles.color)
-          }];
-        }
-        if (htmlNode.styles?.textAlign) {
-          const align = htmlNode.styles.textAlign;
-          if (align === 'center') (figmaNode as TextNode).textAlignHorizontal = 'CENTER';
-          else if (align === 'right') (figmaNode as TextNode).textAlignHorizontal = 'RIGHT';
-          else if (align === 'justify') (figmaNode as TextNode).textAlignHorizontal = 'JUSTIFIED';
+      // Always create the text node even if empty (will be skipped later if needed)
+      const fontFamily = htmlNode.styles?.fontFamily ? sanitizeFontFamily(htmlNode.styles.fontFamily) : 'Inter';
+      const fontWeight = htmlNode.styles?.fontWeight;
+      const fontStyle = mapFontWeightToStyle(fontWeight);
+      
+      const appliedFont = await loadFontWithFallback(fontFamily, fontStyle);
+      (figmaNode as TextNode).fontName = appliedFont;
+      
+      // Set characters - use placeholder if empty
+      (figmaNode as TextNode).characters = textContent || ' ';
+      
+      // Set auto-resize BEFORE applying size
+      (figmaNode as TextNode).textAutoResize = 'WIDTH_AND_HEIGHT';
+      
+      // Apply text styles
+      const fontSize = parseDimension(htmlNode.styles?.fontSize, 16);
+      (figmaNode as TextNode).fontSize = fontSize;
+      
+      if (htmlNode.styles?.color) {
+        (figmaNode as TextNode).fills = [{
+          type: 'SOLID',
+          color: parseColor(htmlNode.styles.color)
+        }];
+      }
+      
+      if (htmlNode.styles?.textAlign) {
+        const align = htmlNode.styles.textAlign;
+        if (align === 'center') (figmaNode as TextNode).textAlignHorizontal = 'CENTER';
+        else if (align === 'right') (figmaNode as TextNode).textAlignHorizontal = 'RIGHT';
+        else if (align === 'justify') (figmaNode as TextNode).textAlignHorizontal = 'JUSTIFIED';
+      }
+      
+      // If there's an explicit width, use HEIGHT auto-resize instead
+      if (htmlNode.position?.absolute?.width) {
+        const width = parseDimension(htmlNode.position.absolute.width, 200);
+        if (width > 0 && width < 10000) {
+          (figmaNode as TextNode).textAutoResize = 'HEIGHT';
+          (figmaNode as TextNode).resize(width, 100);
         }
       }
     } 
     // Handle image nodes
     else if (nodeType === 'IMG') {
       figmaNode = figma.createRectangle();
+      
+      // Visible gray placeholder with icon pattern
       (figmaNode as RectangleNode).fills = [{
         type: 'SOLID',
-        color: { r: 0.85, g: 0.85, b: 0.85 }
+        color: { r: 0.9, g: 0.9, b: 0.9 }
       }];
       (figmaNode as RectangleNode).strokes = [{
         type: 'SOLID',
-        color: { r: 0.7, g: 0.7, b: 0.7 }
+        color: { r: 0.6, g: 0.6, b: 0.6 }
       }];
-      (figmaNode as RectangleNode).strokeWeight = 1;
+      (figmaNode as RectangleNode).strokeWeight = 2;
+      
+      // Apply border radius if present
+      if (htmlNode.styles?.borderRadius) {
+        const radius = parseDimension(htmlNode.styles.borderRadius, 0);
+        if (radius > 0) {
+          (figmaNode as RectangleNode).cornerRadius = radius;
+        }
+      }
     }
     // Handle everything else as frames
     else {
@@ -566,13 +590,17 @@ async function processFigmaNode(node: FigmaJsonNode): Promise<SceneNode> {
   // For HTML nodes, check position.absolute first
   const htmlNode = node as any;
   if (htmlNode.position?.absolute) {
+    // Set position (default to 0 if not provided, common for text-only children)
     figmaNode.x = parseDimension(htmlNode.position.absolute.x, 0);
     figmaNode.y = parseDimension(htmlNode.position.absolute.y, 0);
     
+    // Size for non-text nodes (text handles its own sizing with textAutoResize)
     if (figmaNode.type !== "TEXT") {
       const w = parseDimension(htmlNode.position.absolute.width, 100);
       const h = parseDimension(htmlNode.position.absolute.height, 100);
-      figmaNode.resize(w, h);
+      if (w > 0 && h > 0) {
+        figmaNode.resize(w, h);
+      }
     }
   } else {
     // Standard Figma node positioning
