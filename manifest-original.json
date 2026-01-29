@@ -1,0 +1,22 @@
+{
+  "name": "HTML to Figma Converter",
+  "id": "html-to-figma-converter",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "menu": [
+    {
+      "name": "Convert HTML/JSON",
+      "command": "convert"
+    },
+    {
+      "separator": true
+    },
+    {
+      "name": "Run Automated Test",
+      "command": "automated-test"
+    }
+  ]
+}

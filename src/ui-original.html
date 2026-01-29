@@ -200,60 +200,13 @@
       <h2>HTML to Figma Converter</h2>
 
       <div class="tabs">
-        <div class="tab active" data-tab="url-tab">🌐 Extract URL</div>
-        <div class="tab" data-tab="json-tab">📋 JSON</div>
-        <div class="tab" data-tab="options-tab">⚙️ Options</div>
+        <div class="tab active" data-tab="json-tab">JSON</div>
+        <div class="tab" data-tab="options-tab">Options</div>
       </div>
 
-      <div class="tab-content active" id="url-tab">
-        <div class="form-group">
-          <label for="websiteUrl">Website URL to Extract</label>
-          <input
-            type="text"
-            id="websiteUrl"
-            placeholder="https://example.com"
-            style="width: 100%; padding: 8px 12px; font-size: 12px; border: 1px solid #e5e5e5; border-radius: 4px; margin-bottom: 12px;"
-          />
-          <button id="openUrlBtn" style="width: 100%; margin-bottom: 16px;">
-            🚀 Open URL & Extract
-          </button>
-          
-          <div class="info-box" style="background: #f0f9ff; border: 1px solid #0d99ff; padding: 12px; border-radius: 6px; margin-bottom: 16px;">
-            <strong>📖 How it works:</strong>
-            <ol style="margin: 8px 0 0 0; padding-left: 20px; font-size: 11px; line-height: 1.6;">
-              <li>Enter a URL and click "Open URL & Extract"</li>
-              <li>The page will open in a new tab</li>
-              <li>The extraction script runs automatically</li>
-              <li>JSON is copied to your clipboard</li>
-              <li>Return here and paste in the JSON tab</li>
-            </ol>
-          </div>
-
-          <div class="form-group">
-            <label>📌 Or use the Bookmarklet (drag to bookmarks bar):</label>
-            <div style="background: #fafafa; padding: 12px; border-radius: 6px; border: 1px dashed #ccc; margin-top: 8px;">
-              <a
-                href="javascript:(function(){const s=document.createElement('script');s.src='data:text/javascript,' + encodeURIComponent(EXTRACTION_SCRIPT);document.body.appendChild(s);})();"
-                id="bookmarkletLink"
-                style="display: inline-block; background: #0d99ff; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: 500;"
-                draggable="true"
-              >
-                📑 Extract Page to Figma
-              </a>
-              <div class="note" style="margin-top: 8px;">
-                Drag this to your bookmarks bar, then click it on any webpage to extract
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="tab-content" id="json-tab">
+      <div class="tab-content active" id="json-tab">
         <div class="form-group">
           <label for="jsonData">Paste your JSON data from HTML parser</label>
-          <button id="pasteFromClipboard" style="width: 100%; margin-bottom: 12px; background: #00c853; color: white;">
-            📋 Paste from Clipboard
-          </button>
           <div class="textarea-wrapper">
             <textarea
               id="jsonData"
@@ -351,86 +304,21 @@
       document.addEventListener("DOMContentLoaded", function () {
         console.log('✅ DOMContentLoaded - UI fully loaded');
         
-        // Clipboard paste functions
-        let lastClipboardContent = '';
-        
-        async function tryAutoPasteFromClipboard() {
-          try {
-            const text = await navigator.clipboard.readText();
-            
-            // Check if it's new content and looks like JSON
-            if (text && text !== lastClipboardContent && text.trim().startsWith('{')) {
-              // Try to parse as JSON
-              try {
-                JSON.parse(text);
-                // Valid JSON - paste it
-                jsonDataTextarea.value = text;
-                lastClipboardContent = text;
-                statusMessage.textContent = "✅ JSON auto-pasted from clipboard!";
-                statusMessage.style.color = "#00c853";
-                console.log('✅ Auto-pasted JSON from clipboard');
-              } catch (e) {
-                // Not valid JSON, ignore
-                console.log('⚠️ Clipboard contains text but not valid JSON');
-              }
-            }
-          } catch (err) {
-            console.log('⚠️ Could not read clipboard:', err.message);
-          }
-        }
-        
-        async function pasteFromClipboard() {
-          try {
-            const text = await navigator.clipboard.readText();
-            if (text) {
-              jsonDataTextarea.value = text;
-              lastClipboardContent = text;
-              statusMessage.textContent = "✅ Pasted from clipboard!";
-              statusMessage.style.color = "#00c853";
-              console.log('✅ Manually pasted from clipboard');
-            } else {
-              statusMessage.textContent = "⚠️ Clipboard is empty";
-              statusMessage.style.color = "#ff6b6b";
-            }
-          } catch (err) {
-            statusMessage.textContent = "❌ Could not read clipboard: " + err.message;
-            statusMessage.style.color = "#ff6b6b";
-            console.error('❌ Clipboard read error:', err);
-          }
-        }
-        
         // Tab switching functionality
         const tabs = document.querySelectorAll(".tab");
         const tabContents = document.querySelectorAll(".tab-content");
-        
-        console.log('📑 Found tabs:', tabs.length);
-        console.log('📑 Found tab contents:', tabContents.length);
 
         tabs.forEach((tab) => {
           tab.addEventListener(
             "click",
             function () {
-              console.log('📑 Tab clicked:', this.dataset.tab);
               // Remove active class from all tabs and contents
               tabs.forEach((t) => t.classList.remove("active"));
               tabContents.forEach((c) => c.classList.remove("active"));
 
               // Add active class to current tab and content
               this.classList.add("active");
-              const targetContent = document.getElementById(this.dataset.tab);
-              if (targetContent) {
-                targetContent.classList.add("active");
-                console.log('✅ Activated tab:', this.dataset.tab);
-                
-                // Auto-paste from clipboard when switching to JSON tab
-                if (this.dataset.tab === 'json-tab') {
-                  setTimeout(() => {
-                    tryAutoPasteFromClipboard();
-                  }, 300);
-                }
-              } else {
-                console.error('❌ Tab content not found:', this.dataset.tab);
-              }
+              document.getElementById(this.dataset.tab).classList.add("active");
             },
             { passive: true }
           );
@@ -507,334 +395,13 @@
         const cancelBtn = document.getElementById("cancelBtn");
         const loadingIndicator = document.getElementById("loadingIndicator");
         const statusMessage = document.getElementById("statusMessage");
-        const openUrlBtn = document.getElementById("openUrlBtn");
-        const websiteUrl = document.getElementById("websiteUrl");
-        
-        console.log('🔍 Button elements found:', {
-          convertBtn: !!convertBtn,
-          runNowBtn: !!runNowBtn,
-          testBtn: !!testBtn,
-          cancelBtn: !!cancelBtn,
-          openUrlBtn: !!openUrlBtn
-        });
-        
-        // Extraction script from browser-extract.js
-        const EXTRACTION_SCRIPT = String.raw`(function() {
-  console.log('🎨 Starting page extraction for Figma...');
-  
-  function getRelevantStyles(element, computed) {
-    const styles = {};
-    styles.display = computed.display;
-    styles.position = computed.position;
-    styles.flexDirection = computed.flexDirection;
-    styles.justifyContent = computed.justifyContent;
-    styles.alignItems = computed.alignItems;
-    styles.gap = computed.gap;
-    styles.gridGap = computed.gridGap;
-    styles.color = computed.color;
-    styles.backgroundColor = computed.backgroundColor;
-    styles.fontFamily = computed.fontFamily;
-    styles.fontSize = computed.fontSize;
-    styles.fontWeight = computed.fontWeight;
-    styles.lineHeight = computed.lineHeight;
-    styles.letterSpacing = computed.letterSpacing;
-    styles.textAlign = computed.textAlign;
-    styles.textDecoration = computed.textDecoration;
-    styles.textTransform = computed.textTransform;
-    styles.textShadow = computed.textShadow;
-    styles.whiteSpace = computed.whiteSpace;
-    styles.borderWidth = computed.borderWidth;
-    styles.borderColor = computed.borderColor;
-    styles.borderStyle = computed.borderStyle;
-    styles.borderRadius = computed.borderRadius;
-    styles.boxShadow = computed.boxShadow;
-    styles.opacity = computed.opacity;
-    styles.visibility = computed.visibility;
-    styles.padding = computed.padding;
-    styles.margin = computed.margin;
-    styles.paddingTop = computed.paddingTop;
-    styles.paddingRight = computed.paddingRight;
-    styles.paddingBottom = computed.paddingBottom;
-    styles.paddingLeft = computed.paddingLeft;
-    styles.overflow = computed.overflow;
-    styles.overflowX = computed.overflowX;
-    styles.overflowY = computed.overflowY;
-    styles.zIndex = computed.zIndex;
-    if (element.tagName === 'IMG') styles.objectFit = computed.objectFit;
-    Object.keys(styles).forEach(key => {
-      if (styles[key] === 'none' || styles[key] === 'normal' || styles[key] === 'auto' || styles[key] === 'static' || styles[key] === 'rgba(0, 0, 0, 0)' || styles[key] === '') {
-        delete styles[key];
-      }
-    });
-    return styles;
-  }
-  
-  function shouldCapture(element) {
-    if (!element || !(element instanceof Element)) return false;
-    const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'META', 'LINK', 'HEAD'];
-    if (skipTags.includes(element.tagName)) return false;
-    const computed = window.getComputedStyle(element);
-    if (computed.display === 'none' || computed.visibility === 'hidden' || computed.opacity === '0') return false;
-    const rect = element.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return false;
-    return true;
-  }
-  
-  function getDirectTextContent(element) {
-    let text = '';
-    for (let node of element.childNodes) {
-      if (node.nodeType === Node.TEXT_NODE) text += node.textContent;
-    }
-    return text.trim();
-  }
-  
-  function elementToJson(element, depth = 0, parentRect = null) {
-    if (!shouldCapture(element) || depth > 50) return null;
-    const rect = element.getBoundingClientRect();
-    const computed = window.getComputedStyle(element);
-    const styles = getRelevantStyles(element, computed);
-    let nodeType = element.tagName.toLowerCase();
-    const directText = getDirectTextContent(element);
-    const hasOnlyText = element.childNodes.length === 1 && element.childNodes[0].nodeType === Node.TEXT_NODE;
-    if (hasOnlyText && directText) nodeType = 'text';
-    const node = {
-      type: nodeType,
-      id: element.id || undefined,
-      classes: element.className ? element.className.split(' ').filter(Boolean) : undefined,
-      styles: styles,
-      position: { absolute: {
-        x: parentRect ? rect.left - parentRect.left : rect.left,
-        y: parentRect ? rect.top - parentRect.top : rect.top,
-        width: rect.width,
-        height: rect.height
-      }}
-    };
-    if (nodeType === 'text' || hasOnlyText) node.text = directText || element.textContent?.trim();
-    if (element.tagName === 'IMG') {
-      node.alt = element.alt;
-      node.src = element.src;
-    }
-    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-      node.placeholder = element.placeholder;
-      node.value = element.value;
-      node.styles.type = element.type;
-    }
-    if (element.tagName === 'A') node.href = element.href;
-    const children = [];
-    for (let child of element.children) {
-      const childNode = elementToJson(child, depth + 1, rect);
-      if (childNode) children.push(childNode);
-    }
-    for (let childNode of element.childNodes) {
-      if (childNode.nodeType === Node.TEXT_NODE) {
-        const text = childNode.textContent?.trim();
-        if (text && text.length > 0 && !hasOnlyText) {
-          children.push({
-            type: 'text',
-            text: text,
-            styles: {
-              fontFamily: computed.fontFamily,
-              fontSize: computed.fontSize,
-              fontWeight: computed.fontWeight,
-              color: computed.color
-            },
-            position: { absolute: {
-              width: rect.width,
-              height: parseFloat(computed.fontSize) || 16
-            }}
-          });
-        }
-      }
-    }
-    if (children.length > 0) node.children = children;
-    return node;
-  }
-  
-  function extractPage(selector = 'body') {
-    const rootElement = document.querySelector(selector);
-    if (!rootElement) {
-      console.error('❌ Element not found: ' + selector);
-      return null;
-    }
-    console.log('📦 Extracting: ' + selector);
-    const json = elementToJson(rootElement);
-    if (!json) {
-      console.error('❌ Failed to extract page structure');
-      return null;
-    }
-    return {
-      type: 'CANVAS',
-      name: document.title || 'Extracted Page',
-      url: window.location.href,
-      extractedAt: new Date().toISOString(),
-      viewport: {
-        width: window.innerWidth,
-        height: window.innerHeight
-      },
-      children: [json]
-    };
-  }
-  
-  const pageJson = extractPage('body');
-  if (pageJson) {
-    const jsonString = JSON.stringify(pageJson, null, 2);
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(jsonString).then(() => {
-        console.log('✅ Page extracted successfully!');
-        console.log('📋 JSON copied to clipboard!');
-        console.log('🎨 Now paste this into the Figma plugin!');
-      }).catch(err => {
-        console.log('✅ Page extracted successfully!');
-        console.log('📋 Copy the JSON below:');
-        console.log(jsonString);
-      });
-    } else {
-      console.log('✅ Page extracted successfully!');
-      console.log('📋 Copy the JSON below:');
-      console.log(jsonString);
-    }
-    window.figmaJson = pageJson;
-    console.log('💾 Also saved to: window.figmaJson');
-  }
-  window.extractPage = extractPage;
-})();`;
-        
-        // URL extraction button handler
-        if (openUrlBtn) {
-          openUrlBtn.addEventListener("click", async function(e) {
-            e.preventDefault();
-            console.log('🚀 Open URL button clicked!');
-            
-            const url = websiteUrl.value.trim();
-            
-            if (!url) {
-              statusMessage.textContent = "⚠️ Please enter a URL";
-              statusMessage.style.color = "#ff6b6b";
-              return;
-            }
-            
-            // Validate URL
-            try {
-              new URL(url);
-            } catch (e) {
-              statusMessage.textContent = "⚠️ Invalid URL format";
-              statusMessage.style.color = "#ff6b6b";
-              return;
-            }
-            
-            // Try automatic extraction via local server first
-            statusMessage.innerHTML = '🔄 Extracting page automatically...<br><small>Trying local extraction server...</small>';
-            statusMessage.style.color = "#0d99ff";
-            
-            try {
-              const response = await fetch('http://localhost:3000/extract', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ url })
-              });
-              
-              if (response.ok) {
-                const result = await response.json();
-                
-                if (result.success && result.data) {
-                  // Automatically populate JSON textarea
-                  jsonDataTextarea.value = JSON.stringify(result.data, null, 2);
-                  
-                  // Switch to JSON tab
-                  document.querySelector('[data-tab="json-tab"]').click();
-                  
-                  // Show success message
-                  statusMessage.innerHTML = `
-                    ✅ Extracted automatically!<br>
-                    📊 ${result.stats.totalNodes} nodes extracted<br>
-                    <small>Ready to convert to Figma</small>
-                  `;
-                  statusMessage.style.color = "#00c853";
-                  
-                  console.log('✅ Automatic extraction successful!', result.stats);
-                  return;
-                }
-              }
-              
-              // If server not available, fall back to manual method
-              throw new Error('Local server not responding');
-              
-            } catch (serverError) {
-              console.log('⚠️ Local server not available, using manual method');
-              
-              // Fallback: Manual extraction with console script
-              try {
-                // Copy extraction script to clipboard
-                const tempTextarea = document.createElement('textarea');
-                tempTextarea.value = EXTRACTION_SCRIPT;
-                tempTextarea.style.position = 'fixed';
-                tempTextarea.style.opacity = '0';
-                document.body.appendChild(tempTextarea);
-                tempTextarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(tempTextarea);
-                
-                // Open the URL in a new tab
-                window.open(url, '_blank');
-                
-                // Show manual instructions
-                statusMessage.innerHTML = `
-                  ⚠️ Automatic extraction unavailable<br>
-                  <strong>Using manual method:</strong><br>
-                  <br>
-                  <small>To enable automatic extraction, run:<br>
-                  <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">node extraction-server.js</code></small><br>
-                  <br>
-                  📋 Manual steps:<br>
-                  1. Go to the opened tab<br>
-                  2. Press F12 to open Console<br>
-                  3. Paste script and press Enter<br>
-                  4. Return here, click JSON tab<br>
-                  5. Click "Paste from Clipboard"
-                `;
-                statusMessage.style.color = "#ff9800";
-                statusMessage.style.lineHeight = "1.6";
-                statusMessage.style.fontSize = "11px";
-                
-                // Switch to JSON tab after delay
-                setTimeout(() => {
-                  document.querySelector('[data-tab="json-tab"]').click();
-                }, 3000);
-                
-              } catch (err) {
-                statusMessage.textContent = "❌ Error: " + err.message;
-                statusMessage.style.color = "#ff6b6b";
-                console.error('URL extraction error:', err);
-              }
-            }
-          });
-        } else {
-          console.error('❌ openUrlBtn not found!');
-        }
-
-        // Paste from clipboard button
-        const pasteBtn = document.getElementById('pasteFromClipboard');
-        if (pasteBtn) {
-          console.log('✅ Attaching pasteFromClipboard click handler');
-          pasteBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('📋 Paste from clipboard button clicked!');
-            pasteFromClipboard();
-          });
-        } else {
-          console.error('❌ pasteFromClipboard button not found!');
-        }
 
         // Automated test button
-        if (testBtn) {
-          console.log('✅ Attaching testBtn click handler');
-          testBtn.addEventListener(
-            "click",
-            function () {
-              console.log('🤖 Automated Test button clicked!');
-              const jsonData = jsonDataTextarea.value;
+        testBtn.addEventListener(
+          "click",
+          function () {
+            console.log('🤖 Automated Test button clicked!');
+            const jsonData = jsonDataTextarea.value;
 
             if (!jsonData) {
               statusMessage.textContent = "Please paste JSON data first.";
@@ -878,18 +445,13 @@
           },
           { passive: true }
         );
-        } else {
-          console.error('❌ testBtn not found!');
-        }
 
-        if (convertBtn) {
-          console.log('✅ Attaching convertBtn click handler');
-          convertBtn.addEventListener(
-            "click",
-            function () {
-              console.log('🔘 Convert button clicked!');
-              const jsonData = jsonDataTextarea.value;
-              console.log('📊 JSON data length:', jsonData.length);
+        convertBtn.addEventListener(
+          "click",
+          function () {
+            console.log('🔘 Convert button clicked!');
+            const jsonData = jsonDataTextarea.value;
+            console.log('📊 JSON data length:', jsonData.length);
 
             if (!jsonData) {
               statusMessage.textContent =
@@ -952,31 +514,20 @@
           },
           { passive: true }
         );
-        } else {
-          console.error('❌ convertBtn not found!');
-        }
 
-        if (cancelBtn) {
-          console.log('✅ Attaching cancelBtn click handler');
-          cancelBtn.addEventListener(
-            "click",
-            function () {
-              console.log('🔘 Cancel button clicked!');
-              parent.postMessage({ pluginMessage: { type: "cancel" } }, "*");
-            },
-            { passive: true }
-          );
-        } else {
-          console.error('❌ cancelBtn not found!');
-        }
+        cancelBtn.addEventListener(
+          "click",
+          function () {
+            parent.postMessage({ pluginMessage: { type: "cancel" } }, "*");
+          },
+          { passive: true }
+        );
 
         // Quick-run button (does the same as Convert but keeps the UI flow clear)
         if (runNowBtn) {
-          console.log('✅ Attaching runNowBtn click handler');
           runNowBtn.addEventListener(
             "click",
             function () {
-              console.log('🔘 Run Now button clicked!');
               const jsonData = jsonDataTextarea.value;
               if (!jsonData) {
                 statusMessage.textContent =
@@ -1029,8 +580,6 @@
             },
             { passive: true }
           );
-        } else {
-          console.log('⚠️ runNowBtn not found (this is optional)');
         }
 
         // Listen for messages from the plugin code

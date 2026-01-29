@@ -1,9 +1,30 @@
 {
-  "name": "HTML to Figma Converter",
+  "name": "HTML to Figma - Web Page Extractor",
   "id": "html-to-figma-converter",
   "api": "1.0.0",
   "main": "dist/code.js",
   "ui": "dist/ui.html",
   "editorType": ["figma"],
-  "documentAccess": "dynamic-page"
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": [
+      "http://localhost:3000",
+      "https://*"
+    ],
+    "reasoning": "Communicates with optional local extraction server for automatic webpage extraction. Also supports manual extraction via browser console for any HTTPS website."
+  },
+  "menu": [
+    {
+      "name": "Extract & Convert",
+      "command": "convert"
+    },
+    {
+      "separator": true
+    },
+    {
+      "name": "Run Test",
+      "command": "automated-test"
+    }
+  ],
+  "build": "npm run build"
 }

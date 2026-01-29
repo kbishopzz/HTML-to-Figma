@@ -1,6 +1,8 @@
 // Types for JSON conversion
 export interface Position {
   absolute: {
+    x?: string | number;
+    y?: string | number;
     width: string | number;
     height: string | number;
   };
@@ -51,28 +53,43 @@ export interface Styles {
 export interface JsonNode {
   type: string;
   id?: string;
-  classes?: string[];
-  styles: Styles;
-  position: Position;
-  children?: JsonNode[];
+  classes?: Array<string>;
+  styles?: Styles;
+  position?: Position;
+  children?: Array<JsonNode>;
   text?: string;
   placeholder?: string;
   alt?: string;
+  src?: string;
+  href?: string;
+  name?: string;
+  url?: string;
+  extractedAt?: string;
+  viewport?: { width: number; height: number };
 }
 
 // Figma-style JSON types
 export interface FigmaJsonNode {
-  id: string;
-  name: string;
-  type: 'FRAME' | 'RECTANGLE' | 'TEXT' | 'IMAGE' | 'GROUP' | 'COMPONENT';
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+  id?: string;
+  name?: string;
+  type: 'FRAME' | 'RECTANGLE' | 'TEXT' | 'IMAGE' | 'GROUP' | 'COMPONENT' | 'CANVAS';
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  absoluteBoundingBox?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
   backgroundColor?: ColorObject | string;
   cornerRadius?: number;
-  fills?: Paint[];
-  children?: FigmaJsonNode[];
+  fills?: Array<FigmaPaint>;
+  strokes?: Array<FigmaPaint>;
+  children?: Array<FigmaJsonNode>;
+  frames?: Array<FigmaJsonNode>;
+  characters?: string;
   text?: string;
   style?: TextStyle;
 }
@@ -80,12 +97,12 @@ export interface FigmaJsonNode {
 export interface TextStyle {
   fontFamily?: string;
   fontSize?: number;
-  fontWeight?: number;
+  fontWeight?: number | string;
   lineHeightPx?: number;
-  fills?: Paint[];
+  fills?: Array<FigmaPaint>;
 }
 
-export interface Paint {
+export interface FigmaPaint {
   type: 'SOLID' | 'GRADIENT_LINEAR' | 'GRADIENT_RADIAL' | 'GRADIENT_ANGULAR' | 'GRADIENT_DIAMOND' | 'IMAGE' | 'EMOJI';
   color?: ColorObject | string;
   scaleMode?: 'FILL' | 'FIT' | 'TILE' | 'STRETCH';
